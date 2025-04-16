@@ -5,6 +5,7 @@ from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 import time
 import random
+import pandas as pd
 
 user_agents = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36",
@@ -19,6 +20,7 @@ chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument(f"user-agent={random.choice(user_agents)}")
 
 service = Service(ChromeDriverManager().install())
+
 driver = webdriver.Chrome(service=service, options=chrome_options)
 
 driver.execute_cdp_cmd('Network.setUserAgentOverride', {
@@ -31,16 +33,16 @@ try:
     soup = BeautifulSoup(html, 'html.parser')
 
     time.sleep(random.randint(2, 5))
+
     print(driver.title)
-    
 finally:
     driver.quit()
 
 anuncios = soup.select('li[data-cy="rp-property-cd"]')
-dados_anuncios = []
+df = []
 
 for anuncio in anuncios:
-    dados_anuncios.append({
+    df.append({
         "link": anuncio.find('a').get('href') if anuncio.find('a') else None,
         "valor": anuncio.select_one('.text-2-25').get_text() if anuncio.select_one('.text-2-25') else None,
         "localizacao": anuncio.select_one('.text-2').get_text() if anuncio.select_one('.text-2') else None,
@@ -52,9 +54,8 @@ for anuncio in anuncios:
         "foto": anuncio.find('img', {'itemprop': 'image', 'loading': 'eager'}).get('src') if anuncio.find('img', {'itemprop': 'image', 'loading': 'eager'}) else None
     })
 
-# Exibição dos resultados para teste
-print(f"Total de anúncios processados: {len(dados_anuncios)}")
-if dados_anuncios:
-    print("\nDados do primeiro anúncio:")
-    for chave, valor in dados_anuncios[0].items():
-        print(f"{chave}: {valor}")
+df = pd.DataFrame(df)
+df = df.drop_duplicates(subset='link', keep='first')
+
+df.to_excel('casas_encontradas.xlsx', index=False)
+print(f"Dados exportados para Excel com sucesso. Total de {len(df)} registros únicos.")
