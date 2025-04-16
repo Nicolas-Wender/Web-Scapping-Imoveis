@@ -26,18 +26,24 @@ driver.execute_cdp_cmd('Network.setUserAgentOverride', {
 })
 
 try:
-    # Navegação para o site alvo
     driver.get('https://www.zapimoveis.com.br/venda/casas/?pagina=1&transacao=Venda&tipoUnidade=Residencial,Casa&tipo=Im%C3%B3vel%20usado')
-    
-    # Pausa aleatória para simular comportamento humano
-    time.sleep(random.randint(2, 5))
-    
-    # Captura do conteúdo HTML da página
     html = driver.page_source
     soup = BeautifulSoup(html, 'html.parser')
-    
+
+    time.sleep(random.randint(2, 5))
     print(driver.title)
-    print("Número de elementos na página:", len(soup.select('*')))
+    
+    # Identificação e extração dos anúncios da página
+    anuncios = soup.select('li[data-cy="rp-property-cd"]')
+    print(f"Total de anúncios encontrados: {len(anuncios)}")
+    
+    # Mostra os dados do primeiro anúncio como teste
+    if anuncios:
+        primeiro_anuncio = anuncios[0]
+        print("Dados do primeiro anúncio:")
+        print("Link:", primeiro_anuncio.find('a').get('href') if primeiro_anuncio.find('a') else None)
+        print("Valor:", primeiro_anuncio.select_one('.text-2-25').get_text() if primeiro_anuncio.select_one('.text-2-25') else None)
+        print("Localização:", primeiro_anuncio.select_one('.text-2').get_text() if primeiro_anuncio.select_one('.text-2') else None)
     
 finally:
     driver.quit()
