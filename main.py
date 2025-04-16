@@ -33,17 +33,28 @@ try:
     time.sleep(random.randint(2, 5))
     print(driver.title)
     
-    # Identificação e extração dos anúncios da página
-    anuncios = soup.select('li[data-cy="rp-property-cd"]')
-    print(f"Total de anúncios encontrados: {len(anuncios)}")
-    
-    # Mostra os dados do primeiro anúncio como teste
-    if anuncios:
-        primeiro_anuncio = anuncios[0]
-        print("Dados do primeiro anúncio:")
-        print("Link:", primeiro_anuncio.find('a').get('href') if primeiro_anuncio.find('a') else None)
-        print("Valor:", primeiro_anuncio.select_one('.text-2-25').get_text() if primeiro_anuncio.select_one('.text-2-25') else None)
-        print("Localização:", primeiro_anuncio.select_one('.text-2').get_text() if primeiro_anuncio.select_one('.text-2') else None)
-    
 finally:
     driver.quit()
+
+anuncios = soup.select('li[data-cy="rp-property-cd"]')
+dados_anuncios = []
+
+for anuncio in anuncios:
+    dados_anuncios.append({
+        "link": anuncio.find('a').get('href') if anuncio.find('a') else None,
+        "valor": anuncio.select_one('.text-2-25').get_text() if anuncio.select_one('.text-2-25') else None,
+        "localizacao": anuncio.select_one('.text-2').get_text() if anuncio.select_one('.text-2') else None,
+        "rua": anuncio.select_one('.l-text--weight-regular.truncate').get_text() if anuncio.select_one('.l-text--weight-regular.truncate') else None,
+        "area": anuncio.select_one('.gap-0-5:nth-child(1)').get_text() if anuncio.select_one('.gap-0-5:nth-child(1)') else None,
+        "quarto": anuncio.select_one('.gap-0-5:nth-child(2)').get_text() if anuncio.select_one('.gap-0-5:nth-child(2)') else None,
+        "banheiros": anuncio.select_one('.gap-0-5:nth-child(3)').get_text() if anuncio.select_one('.gap-0-5:nth-child(3)') else None,
+        "espaco_carros": anuncio.select_one('.gap-0-5:nth-child(4)').get_text() if anuncio.select_one('.gap-0-5:nth-child(4)') else None,
+        "foto": anuncio.find('img', {'itemprop': 'image', 'loading': 'eager'}).get('src') if anuncio.find('img', {'itemprop': 'image', 'loading': 'eager'}) else None
+    })
+
+# Exibição dos resultados para teste
+print(f"Total de anúncios processados: {len(dados_anuncios)}")
+if dados_anuncios:
+    print("\nDados do primeiro anúncio:")
+    for chave, valor in dados_anuncios[0].items():
+        print(f"{chave}: {valor}")
